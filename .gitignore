@@ -1,0 +1,4 @@
+db.squlite3
+.virtual_environment
+__pycache__
+* migrations
