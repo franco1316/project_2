@@ -19,9 +19,9 @@ class Config():
 my_config = Config().config_full_db()
 
 #create n rows for each model (Im no recommend bigger values than 1000)
-n = 0
+n = 100
 
-wish_delete = True
+wish_delete = False
 wish_sof_delete = False
 wish_reactive = False
 

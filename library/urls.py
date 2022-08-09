@@ -9,7 +9,6 @@ add_to_router = router.register
 add_to_router("users", LibraryUserListApiView)
 
 add_to_router('books', BookListApiView)
-add_to_router('books_by', BookListApiView.BookByListApiView)
 
 add_to_router('book_items', BookItemListApiView) 
 

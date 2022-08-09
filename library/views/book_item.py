@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.settings import api_settings
 from library.models import BookItem
 from library.serializers.book_item import ExtendedBookItemSerializer, BookItemSerializer
 
@@ -9,7 +11,9 @@ class BookItemListApiView(viewsets.ModelViewSet):
     queryset = BookItem.objects.all()
     serializer_class = BookItemSerializer
     e_serializer_class = ExtendedBookItemSerializer
-    http_method_names = ['get', 'head']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['id', 'title', 'owners', 'book', 'shelf_number', 'rent_by', 'reservation_by']
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
 
     def get_e_serializer_class(self):
         return self.e_serializer_class
