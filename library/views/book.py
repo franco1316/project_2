@@ -18,19 +18,31 @@ class BookListApiView(viewsets.ModelViewSet):
     def get_e_serializer_class(self):
         return self.e_serializer_class
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_name='info', url_path='info', name='Info')
     def show_info(self, req):
-        books = self.get_queryset()
-        serializer = self.get_serializer_class()
-        data = serializer(books, many=True).data
-        return Response({"Books": data}, status=status.HTTP_200_OK)
+        queryset = self.get_queryset()
+        filter_queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(filter_queryset)
+        if page is not None:
+            serializer = self.get_serializer_class()
+            data = serializer(page, many=True).data
+            return Response({'Books': data}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
-    def show_more(self, req):
-        books = self.get_queryset()
         serializer = self.get_e_serializer_class()
-        data = serializer(books, many=True).data
-        return Response({"Books": data}, status=status.HTTP_200_OK)
+        data = serializer(filter_queryset, many=True).data
+
+    @action(detail=False, methods=['get'], url_name='more-info', url_path='more-info', name='More info')
+    def show_more(self, req):
+        queryset = self.get_queryset()
+        filter_queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(filter_queryset)
+        if page is not None:
+            serializer = self.get_e_serializer_class()
+            data = serializer(page, many=True).data
+            return Response({'Books': data}, status=status.HTTP_200_OK)
+
+        serializer = self.get_e_serializer_class()
+        data = serializer(filter_queryset, many=True).data
 
     def __get_slug(self, pk: str):
             if pk.find(':') != -1:
@@ -72,7 +84,7 @@ class BookListApiView(viewsets.ModelViewSet):
 
         return books
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_name='info', url_path='info', name='Info')
     def show_one_info(self, req, pk: str=None):
         slug = self.__get_slug(pk = pk)
         book = self.__get_book(slug = slug)
@@ -81,7 +93,7 @@ class BookListApiView(viewsets.ModelViewSet):
         response = {"Book": data}
         return Response(response, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], url_name='more-info', url_path='more-info', name='More info')
     def show_one_more(self, req, pk:str=None):
         slug = self.__get_slug(pk = pk)
         book = self.__get_book(slug = slug)

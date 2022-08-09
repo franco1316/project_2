@@ -18,29 +18,33 @@ class LibraryUserListApiView(viewsets.ModelViewSet):
     def get_e_serializer_class(self):
         return self.e_serializer_class
 
-    # def list(self, req):
-    #     pass
-    #     # message = 'Select an extra action'
-    #     # return Response({'message': message}, status=status.HTTP_200_OK)
-
-    def create(self, req):
-        pass
-
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_name='info', url_path='info', name='Info')
     def show_info(self, req):
-        query_set = self.get_queryset()
-        serializer = self.get_serializer_class()
-        data = serializer(query_set, many=True).data
-        return Response({"Users": data}, status=status.HTTP_200_OK)
+        queryset = self.get_queryset()
+        filter_queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(filter_queryset)
+        if page is not None:
+            serializer = self.get_serializer_class()
+            data = serializer(page, many=True).data
+            return Response({'Users': data}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
-    def show_more(self, req):
-        users = self.get_queryset()
         serializer = self.get_e_serializer_class()
-        data = serializer(users, many=True).data
-        return Response({"Users": data}, status=status.HTTP_200_OK)
+        data = serializer(filter_queryset, many=True).data
 
-    @action(detail=True)
+    @action(detail=False, methods=['get'], url_name='more-info', url_path='more-info', name='More info')
+    def show_more(self, req):
+        queryset = self.get_queryset()
+        filter_queryset = self.filter_queryset(queryset)
+        page = self.paginate_queryset(filter_queryset)
+        if page is not None:
+            serializer = self.get_e_serializer_class()
+            data = serializer(page, many=True).data
+            return Response({'Users': data}, status=status.HTTP_200_OK)
+
+        serializer = self.get_e_serializer_class()
+        data = serializer(filter_queryset, many=True).data
+
+    @action(detail=True, methods=['get'], url_name='info', url_path='info', name='Info')
     def show_by_id(self, req, pk=None):
         users = self.get_queryset()
         user = users.filter(id = pk)
@@ -50,7 +54,7 @@ class LibraryUserListApiView(viewsets.ModelViewSet):
         response = {"User {0}".format(username): data}
         return Response(response, status=status.HTTP_200_OK)
 
-    @action(detail=True)
+    @action(detail=True, methods=['get'], url_name='more-info', url_path='more-info', name='More info')
     def show_more_by_id(self, req, pk=None):
         users = self.get_queryset()
         user = users.filter(id = pk)

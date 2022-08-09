@@ -7,10 +7,8 @@ router = DefaultRouter()
 add_to_router = router.register
 
 add_to_router("users", LibraryUserListApiView)
-
 add_to_router('books', BookListApiView)
-
-add_to_router('book_items', BookItemListApiView) 
+add_to_router('book-items', BookItemListApiView) 
 
 
 urlpatterns = router.urls
