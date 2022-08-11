@@ -1,8 +1,8 @@
 from content_for_files import (
-    my_config, 
+    my_config,
     n, wish_delete, wish_sof_delete, wish_reactive,
     create_charfield,
-    charfield_one_word as cow, 
+    charfield_one_word as cow,
     charfield_all_symbols as cas
 )
 from library.models import LibraryUser
@@ -14,14 +14,15 @@ def select_role() -> str:
     # role = roles[choose_one]
     # return role
     return roles[randint(0, len(roles) - 1)]
-        
+
 def create_users() -> None:
     for i in range(n):
         password = create_charfield(cas, 8, 16)
-        first_name = create_charfield(cow, 3, 20).title()
+        first_name = create_charfield(cow, 6, 40).title()
         last_name = create_charfield(cow, 3, 20).title()
-        email_name = f'{first_name[0:-1:3].lower() + last_name[::-3].lower()}' 
-        email_host = f'{create_charfield(cow, 5, 10).lower()}' 
+        fullname = create_charfield(cow, 6, 40).title()
+        email_name = f'{first_name[0:-1:3].lower() + last_name[::-3].lower()}'
+        email_host = f'{create_charfield(cow, 5, 10).lower()}'
         email = f'{email_name}@{email_host}.com'
         username = create_charfield(cas, 5, 25)
         role = select_role()
@@ -29,8 +30,7 @@ def create_users() -> None:
         new_library_user = LibraryUser.objects.create(
             username = username,
             password = password,
-            first_name = first_name,
-            last_name = last_name,
+            fullname = fullname,
             email = email,
             role = role
         )
@@ -56,6 +56,6 @@ def data():
 
     new_quantity = len(LibraryUser.objects.all())
     print(f'Library users are: {new_quantity}')
-    
+
 
 data()

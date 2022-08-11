@@ -10,7 +10,7 @@ extended_fields_book_item = [ 'id' ] + fields_book_item + include_extended_field
 
 class BookItemSerializer(serializers.ModelSerializer):
     my_book = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = BookItem
         fields = (fields_book_item)
@@ -33,7 +33,7 @@ class ExtendedBookItemSerializer(serializers.ModelSerializer):
 
     my_readers = serializers.SerializerMethodField()
     my_book = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = BookItem
         fields = (extended_fields_book_item)
@@ -58,7 +58,24 @@ class ExtendedBookItemSerializer(serializers.ModelSerializer):
         book = BookSerializer(my_books, many = False).data
         return book
 
+class CreateBookItemSerializer(serializers.ModelSerializer):
+    my_book = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BookItem
+        fields = '__all__'
+
+    def get_my_book(self, obj):
+        book = Book.objects.filter(title = obj.title)
+        books = Book.objects.all()
+        my_book = {}
+        for book in books:
+            if book.title != '' or book.author != '':
+                if book.title.title() == obj.title.title():
+                    my_book = book
+        if my_book == {}:
+            return 'Don\'t found any book'
+        book = BookSerializer(my_book, many = False).data
+        return book
 
 
-
-        

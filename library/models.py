@@ -10,7 +10,7 @@ class Book(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     category = models.CharField(max_length=60, blank=False)
     date_publication = models.DateField(auto_now=True)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     shelf_number = models.CharField(max_length=2, editable=False)
     price = models.DecimalField(max_digits=7, decimal_places=2, blank=False)
     is_here = models.BooleanField(default=True, blank=True)
@@ -31,9 +31,7 @@ class Book(models.Model):
         price = self.sprice
         return f'Title: {title} | Authors: {author} | Category: {category} | Owner: {owner} | Price: {price}'
 
-class LibraryUser(User):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+class LibraryUser(models.Model):
 
     choices = [
         ('Librarian', 'Librarian'),
@@ -41,11 +39,23 @@ class LibraryUser(User):
         ('System', 'System'),
     ]
 
+    uuid = models.UUIDField(default=uuid.uuid4, blank=False, editable=False, unique=True)
+    fullname = models.CharField(max_length=150, blank=False)
+    username = models.CharField(max_length=30, blank=True, unique=True)
+    email = models.EmailField(max_length=254, unique=True, blank=True, null=False)
+    password = models.CharField(max_length=50, blank=True, null=False)
     role = models.CharField(max_length=15, choices=choices)
+    is_superuser = models.BooleanField(default=False)
+    status = models.BooleanField(default=True, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable= False)
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fullname = self.fullname.title()
 
     def __str__(self) -> str:
-        return super().__str__()
+        return self.fullname
 
 class BookItem(models.Model):
     quantity = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=False)
@@ -66,7 +76,7 @@ class BookItem(models.Model):
             self.uuid = current_book.uuid
             self.shelf_number = current_book.shelf_number
 
-        
+
     def __str__(self) -> str:
         users = ''
         for i, user in enumerate(self.owners.all()):
@@ -78,7 +88,7 @@ class BookItem(models.Model):
         title = f'{self.book}'.split('|')[0].title()
         author = f'{self.book}'.split('|')[1].title()
         quantity = self.quantity
-        if len(users) > 0: 
+        if len(users) > 0:
             return f'({quantity}) [{title} | {author}] => {users}'
         else:
             return f'({quantity}) [{title} | {author}]'
