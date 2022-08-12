@@ -105,7 +105,7 @@ class LibraryUserListApiView(viewsets.ModelViewSet):
     def show_more_by_id(self, req, pk=None):
         users = self.get_queryset()
         user = users.filter(id = pk)
-        serializer = self.get_e_serializer_class()
+        serializer = self.get_extended_serializer_class()
         data = serializer(user, many=True).data
         username = data[0]['full_name']
         response = {"User {0}".format(username): data}

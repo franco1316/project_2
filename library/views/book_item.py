@@ -162,7 +162,7 @@ class BookItemListApiView(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_name='more-info', url_path='more-info', name='More info')
     def show_more_by_id(self, req, pk=None):
         user = BookItem.objects.filter(id = pk)
-        serializer = self.get_e_serializer_class()
+        serializer = self.get_extended_serializer_class()
         data = serializer(user, many=True).data
         response = (data)
         return Response(response, status=status.HTTP_200_OK)

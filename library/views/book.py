@@ -143,7 +143,7 @@ class BookListApiView(viewsets.ModelViewSet):
     def show_one_more(self, req, pk:str=None):
         slug = self.__get_slug(pk = pk)
         book = self.__get_book(slug = slug)
-        serializer = self.get_e_serializer_class()
+        serializer = self.get_extended_serializer_class()
         data = serializer(book, many=True).data
         response = {"Book": data}
         return Response(response, status=status.HTTP_200_OK)
