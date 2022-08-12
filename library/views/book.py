@@ -16,6 +16,7 @@ class BookListApiView(viewsets.ModelViewSet):
     filterset_fields = ['id', 'title', 'author', 'category', 'date_publication']
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     ordering_fields = '__all__'
+    http_method_names = ['get', 'post', 'delete', 'head', 'options', 'trace']
 
     def get_create_serializer_class(self):
         return self.create_serializer_class

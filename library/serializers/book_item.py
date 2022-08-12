@@ -13,7 +13,6 @@ class BookItemSerializer(serializers.ModelSerializer):
         depth = 1
 
     def get_book(self, obj):
-        print(obj.title)
         return obj.title
 
 

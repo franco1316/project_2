@@ -33,6 +33,8 @@ class CreateLibraryUserSerializer(serializers.ModelSerializer):
         }
 
 
+class UpdateLibraryUserSerializer(serializers.ModelSerializer):
+    pass
 """
     In this app maybe we have the case for some unconsidered reason that the owner of some book be a user without a role
     beacuse the role is a field of library user but this field doesn't exist for the users
