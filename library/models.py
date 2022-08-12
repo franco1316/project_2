@@ -1,18 +1,44 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, MinLengthValidator
 import uuid
 # Create your models here.
 
+class LibraryUser(models.Model):
+
+    choices = [
+        ('Librarian', 'Librarian'),
+        ('Member', 'Member'),
+        ('System', 'System'),
+    ]
+
+    uuid = models.UUIDField(default=uuid.uuid4, blank=False, editable=False, unique=True)
+    fullname = models.CharField(max_length=150, validators=[MinLengthValidator(10)], blank=False)
+    username = models.CharField(max_length=30, validators=[MinLengthValidator(8)], blank=True, unique=True)
+    email = models.EmailField(max_length=254, validators=[MinLengthValidator(12)], unique=True, blank=True, null=False)
+    password = models.CharField(max_length=50, validators=[MinLengthValidator(8)], blank=True, null=False)
+    role = models.CharField(max_length=15, choices=choices)
+    is_superuser = models.BooleanField(default=False)
+    status = models.BooleanField(default=True, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable= False)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.fullname = self.fullname.title()
+
+    def __str__(self) -> str:
+        return self.fullname
+
 class Book(models.Model):
-    title = models.CharField(max_length=50, default='My amazing title', blank=False)
-    author = models.CharField(max_length=70, default='Authors', blank=False)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    title = models.CharField(max_length=50, validators=[MinLengthValidator(1)], default='My amazing title', blank=False)
+    author = models.CharField(max_length=70, validators=[MinLengthValidator(10)], default='Authors', blank=False)
+    owner = models.ForeignKey(LibraryUser, on_delete=models.CASCADE, null=True, blank=True)
     category = models.CharField(max_length=60, blank=False)
     date_publication = models.DateField(auto_now=True)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True)
     shelf_number = models.CharField(max_length=2, editable=False)
-    price = models.DecimalField(max_digits=7, decimal_places=2, blank=False)
+    price = models.DecimalField(max_digits=7, decimal_places=2, blank=False, null=False)
     is_here = models.BooleanField(default=True, blank=True)
 
     def __init__(self, *args, **kwargs) -> None:
@@ -31,37 +57,11 @@ class Book(models.Model):
         price = self.sprice
         return f'Title: {title} | Authors: {author} | Category: {category} | Owner: {owner} | Price: {price}'
 
-class LibraryUser(models.Model):
-
-    choices = [
-        ('Librarian', 'Librarian'),
-        ('Member', 'Member'),
-        ('System', 'System'),
-    ]
-
-    uuid = models.UUIDField(default=uuid.uuid4, blank=False, editable=False, unique=True)
-    fullname = models.CharField(max_length=150, blank=False)
-    username = models.CharField(max_length=30, blank=True, unique=True)
-    email = models.EmailField(max_length=254, unique=True, blank=True, null=False)
-    password = models.CharField(max_length=50, blank=True, null=False)
-    role = models.CharField(max_length=15, choices=choices)
-    is_superuser = models.BooleanField(default=False)
-    status = models.BooleanField(default=True, blank=False)
-    created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    updated_at = models.DateTimeField(auto_now=True, editable= False)
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.fullname = self.fullname.title()
-
-    def __str__(self) -> str:
-        return self.fullname
-
 class BookItem(models.Model):
-    quantity = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=False)
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='book', blank=True, null=True)
-    owners = models.ManyToManyField(User, blank=True)
-    title = models.CharField(max_length=50, blank=False)
+    quantity = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=False, null=False)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='book', blank=False, null=False)
+    owners = models.ManyToManyField(LibraryUser, blank=True, related_name='readers')
+    title = models.CharField(max_length=50, validators=[MinLengthValidator(10)], blank=False)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     shelf_number = models.CharField(max_length=2, editable=False)
     rent_by = models.OneToOneField(LibraryUser, on_delete=models.CASCADE, related_name='rent', null=True, blank=True)

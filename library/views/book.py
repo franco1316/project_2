@@ -12,9 +12,10 @@ class BookListApiView(viewsets.ModelViewSet):
     serializer_class = BookSerializer
     create_serializer_class = CreateBookSerializer
     extended_serializer_class = ExtendedBookSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['id', 'title', 'author', 'category', 'date_publication', 'owner__first_name', 'owner__last_name']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['id', 'title', 'author', 'category', 'date_publication']
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    ordering_fields = '__all__'
 
     def get_create_serializer_class(self):
         return self.create_serializer_class
@@ -25,13 +26,42 @@ class BookListApiView(viewsets.ModelViewSet):
     def list(self, req):
         return Response({
             'Info': 'http://127.0.0.1:8000/api/v1/books/info',
-            'More info': 'http://127.0.0.1:8000/api/v1/books/more-info'
+            'More-info': 'http://127.0.0.1:8000/api/v1/books/more-info',
+            'Add-book': 'http://127.0.0.1:8000/api/v1/books/add'
         })
 
     def create(self, req):
-        return Response('Something')
+        if req.method == 'GET':
+            return Response()
+        serializer = self.get_serializer(data=req.data, partial=False)
+        serializer.is_valid(raise_exception=True)
+        data = req.data
+        new_user = Book.objects.create(
+            title = data['title'],
+            author = data['author'],
+            category = data['category'],
+            price = data['price'],
+        )
+        new_user.save()
+        return Response({f'New book': data}, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['get'], url_name='info', url_path='info', name='Info')
+    @action(detail=False, methods=['get', 'post'], url_name='new-book', url_path='add', name='Book For Library')
+    def create_book(self, req):
+        if req.method == 'GET':
+            return Response()
+        serializer = self.get_serializer(data=req.data, partial=False)
+        serializer.is_valid(raise_exception=True)
+        data = req.data
+        new_user = Book.objects.create(
+            title = data['title'],
+            author = data['author'],
+            category = data['category'],
+            price = data['price'],
+        )
+        new_user.save()
+        return Response({f'New book': data}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_name='get-info', url_path='info', name='Get Info')
     def show_info(self, req):
         queryset = self.get_queryset()
         filter_queryset = self.filter_queryset(queryset)
@@ -42,7 +72,8 @@ class BookListApiView(viewsets.ModelViewSet):
         data = serializer(page, many=True).data
         if len(data) == 0:
             return Response({'No data'}, status=status.HTTP_204_NO_CONTENT)
-        return Response({'Books': data}, status=status.HTTP_200_OK)
+        response = (data)
+        return Response(response, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_name='more-info', url_path='more-info', name='More info')
     def show_more(self, req):
@@ -55,7 +86,8 @@ class BookListApiView(viewsets.ModelViewSet):
         data = serializer(page, many=True).data
         if len(data) == 0:
             return Response({'No data'}, status=status.HTTP_204_NO_CONTENT)
-        return Response({'Books': data}, status=status.HTTP_200_OK)
+        response = (data)
+        return Response(response, status=status.HTTP_200_OK)
 
     def __get_slug(self, pk: str):
             if pk.find(':') != -1:
@@ -97,7 +129,7 @@ class BookListApiView(viewsets.ModelViewSet):
 
         return books
 
-    @action(detail=True, methods=['get'], url_name='info', url_path='info', name='Info')
+    @action(detail=True, methods=['get'], url_name='get-info', url_path='info', name='Get Info')
     def show_one_info(self, req, pk: str=None):
         slug = self.__get_slug(pk = pk)
         book = self.__get_book(slug = slug)

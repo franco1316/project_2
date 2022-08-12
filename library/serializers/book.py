@@ -3,19 +3,23 @@ from ..models import *
 from .library_user import LibraryUserSerializer
 
 #do a category as no required field or change the model and the full_db/book
-fields_book = [ 'title', 'author', 'category', 'shelf_number', 'price' ]
-
-include_fields_book = [ 'owner', ]
-extended_fields_book = [ 'id' ] + fields_book + [ 'date_publication', 'uuid' ] + include_fields_book
+fields_book = [ 'title', 'author', 'category', 'shelf_number', 'price', 'owner']
+extended_fields_book = [ 'id' ] + fields_book + [ 'date_publication', 'uuid' ]
 
 class BookSerializer(serializers.ModelSerializer):
 
     price = serializers.SerializerMethodField()
-
+    owner = serializers.SerializerMethodField()
     class Meta:
         model = Book
         fields = (fields_book)
         depth = 1
+
+    def get_owner(self, obj):
+        try:
+            return obj.owner.fullname
+        except AttributeError:
+            return None
 
     def get_price(self, obj):
         try:
@@ -26,25 +30,48 @@ class BookSerializer(serializers.ModelSerializer):
 
 class ExtendedBookSerializer(serializers.ModelSerializer):
 
-    owner = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
-
+    owner = serializers.SerializerMethodField()
     class Meta:
         model = Book
         fields = (extended_fields_book)
-        include = (include_fields_book)
         depth = 1
 
     def get_owner(self, obj):
-        owners = LibraryUser.objects.all()
-        my_owners = {}
-        for owner in owners:
-            if owner.email != '':
-                owner = LibraryUserSerializer(owner, many=False).data
-                my_owners = owner
-        if my_owners == {}:
-            my_owners == {None}
-        return my_owners
+        try:
+            owner = obj.owner
+            id = owner.id
+            uuid = owner.uuid
+            fullname = owner.fullname
+            email = owner.email
+            password = owner.password
+            role = owner.role
+            superuser = owner.is_superuser
+            status = owner.status
+        except AttributeError:
+            return None
+
+        if status:
+            status = 'active'
+        else:
+            status = 'inactive'
+
+        if superuser:
+            status = f'{status} superuser'
+        else:
+            status = f'{status} user'
+
+        owner = {
+            'id': id,
+            'uuid': uuid,
+            'fullname': fullname,
+            'email': email,
+            'password': password,
+            'role': role,
+            'status': status,
+        }
+
+        return owner
 
     def get_price(self, obj):
         try:
@@ -53,16 +80,6 @@ class ExtendedBookSerializer(serializers.ModelSerializer):
             return obj['price']
 
 class CreateBookSerializer(serializers.ModelSerializer):
-
-    price = serializers.SerializerMethodField()
-
     class Meta:
         model = Book
-        fields = (fields_book)
-        depth = 1
-
-    def get_price(self, obj):
-        try:
-            return obj.sprice
-        except AttributeError:
-            return obj['price']
+        fields = '__all__'

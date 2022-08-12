@@ -1,3 +1,4 @@
+from sqlite3 import IntegrityError
 from rest_framework import serializers
 from ..models import LibraryUser
 
@@ -30,7 +31,6 @@ class CreateLibraryUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
-
 
 
 """
